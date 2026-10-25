@@ -1,0 +1,16 @@
+{
+  "stickers": {
+    "command": "/stickers",
+    "name": "Claude Code sticker pack",
+    "formUrl": "https://app.brilliantmade.com/r/claude-code-stickers",
+    "available": false,
+    "form_open": false
+  },
+  "plushie": {
+    "command": "/plushies",
+    "name": "Clawd plushie",
+    "formUrl": "https://app.brilliantmade.com/r/claude-code-plushies",
+    "available": false,
+    "form_open": false
+  }
+}

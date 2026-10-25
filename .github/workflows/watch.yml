@@ -1,0 +1,48 @@
+name: plushie-watch
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      test_notify:
+        description: "Send a test push instead of checking"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency: plushie-watch
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check claude.dev swag
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PLUSHIE_LOG: /tmp/watch.log
+        run: python3 watch.py ${{ inputs.test_notify && '--test-notify' || '' }}
+
+      - name: Save state if it changed
+        run: |
+          if ! git diff --quiet -- state.json; then
+            git config user.name "plushie-watch"
+            git config user.email "actions@users.noreply.github.com"
+            git add state.json
+            git commit -m "Update swag state"
+            git push
+          fi
+
+      # GitHub pauses scheduled workflows after 60 days without repo activity;
+      # re-enabling the workflow resets that timer.
+      - name: Keep schedule alive
+        if: github.event.schedule
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/watch.yml/enable" || true

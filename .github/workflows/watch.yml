@@ -40,9 +40,15 @@ jobs:
           fi
 
       # GitHub pauses scheduled workflows after 60 days without repo activity;
-      # re-enabling the workflow resets that timer.
+      # re-enabling the workflow resets that timer. Re-enabling also re-registers
+      # the schedule (which then takes hours to fire again), so only do it monthly.
       - name: Keep schedule alive
         if: github.event.schedule
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/watch.yml/enable" || true
+        run: |
+          wf="repos/${{ github.repository }}/actions/workflows/watch.yml"
+          updated=$(gh api "$wf" --jq .updated_at)
+          age_days=$(( ($(date +%s) - $(date -d "$updated" +%s)) / 86400 ))
+          echo "workflow last re-enabled/updated $age_days days ago"
+          if [ "$age_days" -ge 30 ]; then gh api -X PUT "$wf/enable"; fi

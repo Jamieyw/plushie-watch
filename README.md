@@ -1,6 +1,8 @@
 # plushie-watch
 
-Checks https://claude.dev/terminal/ every 5 minutes (GitHub Actions) and sends a phone push
+Checks https://claude.dev/terminal/ every 5 minutes (GitHub Actions, triggered by an external
+cron-job.org call to the `workflow_dispatch` API, since GitHub's own schedule runs only every few
+hours) and sends a phone push
 via [ntfy](https://ntfy.sh) when the free Clawd plushies / Claude Code stickers come back,
 or when a new swag item appears.
 

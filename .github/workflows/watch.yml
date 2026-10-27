@@ -1,8 +1,10 @@
 name: plushie-watch
 
 on:
+  # GitHub's scheduler is degraded (runs every few hours), so this is only a backup.
+  # The real 5-minute timer is cron-job.org calling the workflow_dispatch API.
   schedule:
-    - cron: "2-59/5 * * * *"   # every 5 min, offset from :00 when GitHub is busiest
+    - cron: "2-59/5 * * * *"
   workflow_dispatch:
     inputs:
       test_notify:
@@ -39,11 +41,11 @@ jobs:
             git push
           fi
 
-      # GitHub pauses scheduled workflows after 60 days without repo activity;
-      # re-enabling the workflow resets that timer. Re-enabling also re-registers
-      # the schedule (which then takes hours to fire again), so only do it monthly.
-      - name: Keep schedule alive
-        if: github.event.schedule
+      # GitHub pauses scheduled workflows after 60 days without repo activity, and a
+      # disabled workflow also rejects the cron-job.org dispatches. Re-enabling resets
+      # that timer; runs on every trigger but only acts monthly.
+      - name: Keep workflow alive
+        if: ${{ !inputs.test_notify }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
